@@ -3,14 +3,15 @@
 /* -------------------------------------------------------------------------- */
 /* IMPORTS                                                                    */
 /* -------------------------------------------------------------------------- */
-import React, { useState, useRef, useEffect, memo, useCallback } from 'react';
+// ✅ تم إضافة useMemo هنا
+import React, { useState, useRef, useEffect, memo, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, ArrowRight, Upload, FileText, Layers, Network, MessageCircle, 
   X, Send, Download, Clock, AlertTriangle, BookOpen, GraduationCap, Check, 
   Eye, CheckCircle2, LayoutDashboard, BarChart3, Settings2, Trash2, Youtube, 
   FileDown, Copy, Volume2, Square, Settings, Image as ImageIcon, ExternalLink, 
-  PenTool, Award
+  PenTool, Award, Maximize, ZoomIn, ZoomOut
 } from 'lucide-react';
 
 import ReactFlow, { 
@@ -60,22 +61,22 @@ interface AppSettings {
 
 // 1. 🌌 Aurora Background
 const AuroraBackground = memo(() => (
-  <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#050505]">
+  <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-zinc-950">
     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
     <motion.div 
       animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2], x: [0, 30, 0], y: [0, -20, 0] }} 
       transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] bg-green-900/20 rounded-full blur-[120px]" 
+      className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] bg-green-900/20 rounded-full blur-[100px]" 
     />
     <motion.div 
       animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1], x: [0, -40, 0], y: [0, 40, 0] }} 
       transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-      className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-emerald-900/20 rounded-full blur-[120px]" 
+      className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-emerald-900/20 rounded-full blur-[100px]" 
     />
     <motion.div 
       animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.3, 0.1] }} 
       transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-      className="absolute bottom-[-10%] left-[20%] w-[700px] h-[500px] bg-teal-900/10 rounded-full blur-[120px]" 
+      className="absolute bottom-[-10%] left-[20%] w-[700px] h-[500px] bg-teal-900/10 rounded-full blur-[100px]" 
     />
   </div>
 ));
@@ -99,7 +100,7 @@ const SkeletonLoader = () => (
   </div>
 );
 
-// 3. 📏 Reading Progress Bar (Fixed Type Error)
+// 3. 📏 Reading Progress Bar
 const ReadingProgressBar = ({ targetRef }: { targetRef: React.RefObject<HTMLDivElement | null> }) => {
   const [progress, setProgress] = useState(0);
   
@@ -231,7 +232,9 @@ MarkdownRenderer.displayName = 'MarkdownRenderer';
 const Typewriter = memo(({ text, speed = 10, shouldAnimate = true, onComplete }: any) => {
   const [displayedText, setDisplayedText] = useState(shouldAnimate ? '' : text);
   const onCompleteRef = useRef(onComplete);
+  
   useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+  
   useEffect(() => {
     if (!shouldAnimate) { setDisplayedText(text); return; }
     let i = 0; setDisplayedText('');
@@ -241,6 +244,8 @@ const Typewriter = memo(({ text, speed = 10, shouldAnimate = true, onComplete }:
     }, speed);
     return () => clearInterval(interval);
   }, [text, speed, shouldAnimate]);
+
+  // ✅ HERE IS THE FIX: useMemo is now imported at the top
   const renderedContent = useMemo(() => {
       return displayedText.split(/(\[`?\d{1,2}:\d{2}`?\])/g).map((part: string, i: number) => {
           if (part.match(/^\[`?\d{1,2}:\d{2}`?\]$/)) {
@@ -250,6 +255,7 @@ const Typewriter = memo(({ text, speed = 10, shouldAnimate = true, onComplete }:
           return <span key={i}><MarkdownRenderer content={part} /></span>;
       });
   }, [displayedText]);
+
   return (<div dir="auto">{renderedContent}{displayedText.length < text.length && shouldAnimate && <span className="inline-block w-2 h-4 bg-green-500 ml-1 animate-pulse align-middle" />}</div>);
 });
 Typewriter.displayName = 'Typewriter';
@@ -457,6 +463,7 @@ export default function Home() {
       } finally { setIsGrading(false); }
   }, [file, topic, inputType, examQuestions, examAnswers]);
 
+  // ✅ FIX: Added handleExportFlashcards with Toast
   const handleExportFlashcards = useCallback(() => {
     if (!result?.flashcards) return;
     const csvContent = "data:text/csv;charset=utf-8," + "Front,Back\n" + result.flashcards.map(card => `"${card.front.replace(/"/g, '""')}","${card.back.replace(/"/g, '""')}"`).join("\n");
@@ -544,7 +551,7 @@ export default function Home() {
                   <p className="text-zinc-400 text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed">Your AI companion for smart learning. Upload documents, YouTube links, or just ask.</p>
               </div>
 
-              <div className="w-full max-w-2xl bg-[#0f0f11]/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-3 shadow-2xl ring-1 ring-white/5 transition-all hover:border-green-500/30 hover:ring-green-500/20 group">
+              <div className="w-full max-w-2xl bg-zinc-900/80 backdrop-blur-2xl border border-zinc-800 rounded-3xl p-3 shadow-2xl ring-1 ring-white/5 transition-all hover:border-green-500/30 hover:ring-green-500/20 group">
                  <div className="flex justify-center mb-4">
                      <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
                          <button onClick={() => setInputType('text')} className={`px-5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${inputType === 'text' ? 'bg-zinc-800 text-white shadow-lg shadow-black/50' : 'text-zinc-500 hover:text-zinc-300'}`}><FileText className="w-4 h-4" /> Files / Text</button>
@@ -565,6 +572,7 @@ export default function Home() {
           {/* 💀 2. SKELETON LOADING (Instead of Spinner) */}
           {loading && <SkeletonLoader />}
 
+          {/* EXAM & RESULTS */}
           {isExamMode && !loading && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-3xl space-y-8">
                   <div className="flex justify-between items-center mb-6"><h2 className="text-2xl font-bold flex items-center gap-2 text-white"><PenTool className="w-6 h-6 text-green-500" /> Advanced Exam</h2><button onClick={() => setIsExamMode(false)} className="text-xs text-zinc-500 hover:text-white">Exit Exam</button></div>
