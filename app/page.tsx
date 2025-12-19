@@ -3,8 +3,7 @@
 /* -------------------------------------------------------------------------- */
 /* IMPORTS                                                                    */
 /* -------------------------------------------------------------------------- */
-
-import React, { useState, useRef, useEffect, memo, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useEffect, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, ArrowRight, Upload, FileText, Layers, Network, MessageCircle, 
@@ -59,7 +58,7 @@ interface AppSettings {
 /* UI COMPONENTS (Visual Features)                                            */
 /* -------------------------------------------------------------------------- */
 
-// 1.Aurora Background
+// 1. 🌌 Aurora Background
 const AuroraBackground = memo(() => (
   <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#050505]">
     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
@@ -81,7 +80,7 @@ const AuroraBackground = memo(() => (
   </div>
 ));
 
-// 2.Skeleton Loading
+// 2. 💀 Skeleton Loading
 const SkeletonLoader = () => (
   <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 p-4 animate-pulse">
     <div className="md:col-span-12 h-24 bg-zinc-900/50 border border-zinc-800 rounded-2xl"></div>
@@ -100,8 +99,8 @@ const SkeletonLoader = () => (
   </div>
 );
 
-// 3.Reading Progress Bar
-const ReadingProgressBar = ({ targetRef }: { targetRef: React.RefObject<HTMLDivElement> }) => {
+// 3. 📏 Reading Progress Bar (Fixed Type Error)
+const ReadingProgressBar = ({ targetRef }: { targetRef: React.RefObject<HTMLDivElement | null> }) => {
   const [progress, setProgress] = useState(0);
   
   useEffect(() => {
@@ -170,10 +169,10 @@ const handleTimestampClick = (timeStr: string) => {
              const videoId = currentTopic.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)?.[2];
              if (videoId) {
                 window.open(`https://www.youtube.com/watch?v=${videoId}&t=${seconds}s`, '_blank');
-                toast.success(`Jumping to ${timeStr} in video`); // 🔥 Toast Added
+                toast.success(`Jumping to ${timeStr} in video`);
              }
         } else { 
-            toast.info(`Timestamp: ${timeStr} (No video context)`); // 🔥 Toast Added
+            toast.info(`Timestamp: ${timeStr} (No video context)`);
         }
     }
 };
@@ -188,7 +187,7 @@ const CodeBlock = memo(({ className, children, inline }: any) => {
     const text = String(children).replace(/\n$/, '');
     navigator.clipboard.writeText(text); 
     setIsCopied(true); 
-    toast.success("Code copied to clipboard!"); // 🔥 Toast Added
+    toast.success("Code copied to clipboard!");
     setTimeout(() => setIsCopied(false), 2000);
   }, [children]);
   if (!inline && match) {
@@ -331,7 +330,7 @@ export default function Home() {
       setNodes([]); setEdges([]); setChatMessages([]);
       window.speechSynthesis.cancel();
       localStorage.removeItem('study_ai_result');
-      toast("Session Cleared", { icon: "🗑️" }); // 🔥 Toast Added
+      toast("Session Cleared", { icon: "🗑️" });
   }, [setNodes, setEdges]);
 
   const fileToBase64 = (file: File): Promise<string> => {
@@ -359,7 +358,7 @@ export default function Home() {
 
   const handleGenerate = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault(); if (!topic.trim() && !file) {
-      toast.error("Please enter a topic or upload a file!"); // 🔥 Toast Added
+      toast.error("Please enter a topic or upload a file!");
       return;
     }
     setLoading(true); setError(null); resetSession(); 
@@ -370,10 +369,10 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Generation Failed");
       setResult(data); if (data.mindMapEdges) processMindMapData(data.mindMapEdges);
-      toast.success("Study Guide Generated!"); // 🔥 Toast Added
+      toast.success("Study Guide Generated!");
     } catch (err: any) { 
       setError(err.message); 
-      toast.error(`Error: ${err.message}`); // 🔥 Toast Added
+      toast.error(`Error: ${err.message}`);
     } finally { setLoading(false); }
   }, [topic, file, inputType, settings, resetSession, processMindMapData]);
 
@@ -406,7 +405,7 @@ export default function Home() {
   const onNodeClick = useCallback(async (_: any, node: Node) => {
       const label = node.data.label; if (!label) return;
       setNodes((nds) => nds.map(n => n.id === node.id ? { ...n, style: { ...n.style, borderColor: '#22c55e', borderStyle: 'dashed' }, data: { label: 'Thinking...' } } : n));
-      toast.info(`Expanding topic: ${label}...`); // 🔥 Toast Added
+      toast.info(`Expanding topic: ${label}...`);
       try {
           let fileData = null; let mimeType = null; if (file) { fileData = await fileToBase64(file); mimeType = file.type; }
           const res = await fetch('/api/generate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ action: 'expand', nodeLabel: label, topic, fileData, mimeType, type: inputType }) });
@@ -415,35 +414,35 @@ export default function Home() {
               const allEdges = [...(result?.mindMapEdges || []), ...data.newEdges];
               if (result) setResult({ ...result, mindMapEdges: allEdges });
               processMindMapData(allEdges);
-              toast.success("Mind Map Expanded!"); // 🔥 Toast Added
+              toast.success("Mind Map Expanded!");
           }
       } catch (e) { 
         setNodes((nds) => nds.map(n => n.id === node.id ? { ...n, style: { ...n.style, borderColor: '#27272a', borderStyle: 'solid' }, data: { label } } : n)); 
-        toast.error("Could not expand node."); // 🔥 Toast Added
+        toast.error("Could not expand node.");
       }
   }, [file, topic, inputType, result, setNodes, processMindMapData]);
 
   // Exam
   const startExam = useCallback(async () => {
       setLoading(true); setIsExamMode(true); setGradingResult(null); setExamAnswers({});
-      toast.loading("Generating comprehensive exam..."); // 🔥 Toast Added
+      toast.loading("Generating comprehensive exam...");
       try {
           let fileData = null; let mimeType = null; if (file) { fileData = await fileToBase64(file); mimeType = file.type; }
           const res = await fetch('/api/generate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ action: 'exam', topic, fileData, mimeType, type: inputType, settings }) });
           const data = await res.json();
           setExamQuestions(data.exam || []);
           toast.dismiss(); // Remove loading toast
-          toast.success("Exam Ready!"); // 🔥 Toast Added
+          toast.success("Exam Ready!");
       } catch (e) { 
         setError("Exam generation failed"); 
         setIsExamMode(false); 
-        toast.error("Failed to generate exam"); // Toast Added
+        toast.error("Failed to generate exam");
       } finally { setLoading(false); }
   }, [file, topic, inputType, settings]);
 
   const submitExam = useCallback(async () => {
       setIsGrading(true);
-      toast.loading("Grading your answers..."); // Toast Added
+      toast.loading("Grading your answers...");
       try {
           let fileData = null; let mimeType = null; if (file) { fileData = await fileToBase64(file); mimeType = file.type; }
           const userContext = examQuestions.map(q => ({ question: q.question, answer: examAnswers[q.id] || "No answer" }));
@@ -452,14 +451,12 @@ export default function Home() {
           setGradingResult(data); 
           fireConfetti();
           toast.dismiss(); // Remove loading
-          toast.success("Exam Graded! Great effort! 🎉"); // 🔥 Toast Added
+          toast.success("Exam Graded! Great effort! 🎉");
       } catch(e) { 
-        alert("Grading failed."); 
-        toast.error("Grading failed. Please try again."); // 🔥 Toast Added
+        toast.error("Grading failed. Please try again.");
       } finally { setIsGrading(false); }
   }, [file, topic, inputType, examQuestions, examAnswers]);
 
-  //  Added handleExportFlashcards with Toast
   const handleExportFlashcards = useCallback(() => {
     if (!result?.flashcards) return;
     const csvContent = "data:text/csv;charset=utf-8," + "Front,Back\n" + result.flashcards.map(card => `"${card.front.replace(/"/g, '""')}","${card.back.replace(/"/g, '""')}"`).join("\n");
@@ -470,12 +467,12 @@ export default function Home() {
     document.body.appendChild(link); 
     link.click(); 
     document.body.removeChild(link);
-    toast.success("Flashcards exported to CSV/Anki!"); // 🔥 Toast Added
+    toast.success("Flashcards exported to CSV/Anki!");
   }, [result]);
 
   const handleTTS = useCallback((text: string, e?: React.MouseEvent) => {
       e?.stopPropagation(); if (!('speechSynthesis' in window)) {
-        toast.error("Text-to-Speech not supported in this browser"); // 🔥 Toast Added
+        toast.error("Text-to-Speech not supported in this browser");
         return;
       }
       if (speakingItem === text) { window.speechSynthesis.cancel(); setSpeakingItem(null); } 
@@ -485,24 +482,24 @@ export default function Home() {
   const handleDownloadPDF = () => {
       if (!result) return;
       const doc = new jsPDF(); doc.setFontSize(20); doc.setTextColor(34, 197, 94); doc.text(result.title || "Study Guide", 105, 20, { align: "center" }); doc.setFontSize(12); doc.setTextColor(0); const splitText = doc.splitTextToSize(result.summary, 180); doc.text(splitText, 15, 40); doc.save("Study_Guide.pdf");
-      toast.success("PDF Downloaded successfully!"); // 🔥 Toast Added
+      toast.success("PDF Downloaded successfully!");
   };
 
   const removeFile = (e: React.MouseEvent) => { 
     e.stopPropagation(); 
     setFile(null); 
     if (fileInputRef.current) fileInputRef.current.value = ""; 
-    toast.info("File removed"); // 🔥 Toast Added
+    toast.info("File removed");
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-green-500/30 selection:text-green-200 font-sans overflow-x-hidden p-4 md:p-8 flex flex-col items-center relative">
       <style>{`.perspective-1000 { perspective: 1000px; } .preserve-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .rotate-y-180 { transform: rotateY(180deg); } @keyframes spotlight { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } } .animate-spotlight { animation: spotlight 15s ease infinite; background-size: 200% 200%; }`}</style>
       
-      {/* ADDED TOASTER */}
+      {/* 🔥 ADDED TOASTER */}
       <Toaster position="top-center" richColors theme="dark" />
 
-      {/* AURORA BACKGROUND */}
+      {/* 🌌 1. AURORA BACKGROUND */}
       <AuroraBackground />
 
       {/* --- SETTINGS MODAL --- */}
@@ -540,16 +537,32 @@ export default function Home() {
       <main className="max-w-6xl w-full flex flex-col items-center z-10 pb-40"> 
         <AnimatePresence mode="wait">
           {!result && !loading && !isExamMode && (
-            <motion.div key="input" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="w-full max-w-2xl space-y-6">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl relative group transition-all hover:border-zinc-700">
-                 <div className="flex items-center justify-between mb-4"><h2 className="text-sm font-bold flex items-center gap-2 text-zinc-400 font-mono"><Settings2 className="w-4 h-4 text-green-500" /> INPUT_SOURCE</h2><div className="flex bg-zinc-950 p-1 rounded-lg border border-zinc-800"><button onClick={() => setInputType('text')} className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-2 ${inputType === 'text' ? 'bg-zinc-800 text-white' : 'text-zinc-500'}`}><FileText className="w-3 h-3" /> Files</button><button onClick={() => setInputType('youtube')} className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-2 ${inputType === 'youtube' ? 'bg-red-950/30 text-red-400' : 'text-zinc-500'}`}><Youtube className="w-3 h-3" /> YouTube</button></div></div>
-                 <div className="relative flex items-center gap-2">{inputType === 'text' && (<><input type="file" ref={fileInputRef} onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" accept="application/pdf, image/*"/><button onClick={() => fileInputRef.current?.click()} className={`h-12 px-4 rounded-xl border flex items-center gap-2 text-sm transition-all ${file ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400'}`}>{file ? <FileText className="w-4 h-4"/> : <Upload className="w-4 h-4"/>}</button></>)}<input id="topic-input" type="text" value={topic} onChange={(e) => setTopic(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleGenerate(e)} placeholder={inputType === 'youtube' ? "Paste YouTube Link..." : "Enter topic or paste text..."} className="flex-1 bg-zinc-950 border border-zinc-800 text-white px-4 h-12 rounded-xl focus:border-green-500/50 outline-none transition-all font-mono text-sm"/><button onClick={handleGenerate} className="h-12 w-12 bg-green-500 hover:bg-green-400 text-black rounded-xl flex items-center justify-center transition-all shadow-lg shadow-green-500/20"><ArrowRight className="w-5 h-5" /></button></div>
-                 {file && inputType === 'text' && (<div className="mt-3 flex items-center justify-between bg-zinc-950/50 px-3 py-2 rounded-lg border border-zinc-800/50"><p className="text-[10px] text-green-400 font-mono flex items-center gap-2">{file.type.startsWith('image/') ? <ImageIcon className="w-3 h-3"/> : <FileText className="w-3 h-3"/>}{file.name}</p><button onClick={removeFile} className="text-zinc-500 hover:text-red-400"><X className="w-3 h-3"/></button></div>)}
+            <motion.div key="input" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95, y: -20 }} transition={{ duration: 0.5, ease: "easeOut" }} className="flex flex-col items-center justify-center w-full min-h-[calc(100vh-140px)] -mt-10 space-y-10">
+              
+              <div className="text-center space-y-6 max-w-3xl px-4">
+                  <h2 className="text-5xl md:text-7xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/40 drop-shadow-2xl">Master any topic.</h2>
+                  <p className="text-zinc-400 text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed">Your AI companion for smart learning. Upload documents, YouTube links, or just ask.</p>
               </div>
+
+              <div className="w-full max-w-2xl bg-[#0f0f11]/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-3 shadow-2xl ring-1 ring-white/5 transition-all hover:border-green-500/30 hover:ring-green-500/20 group">
+                 <div className="flex justify-center mb-4">
+                     <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                         <button onClick={() => setInputType('text')} className={`px-5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${inputType === 'text' ? 'bg-zinc-800 text-white shadow-lg shadow-black/50' : 'text-zinc-500 hover:text-zinc-300'}`}><FileText className="w-4 h-4" /> Files / Text</button>
+                         <button onClick={() => setInputType('youtube')} className={`px-5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${inputType === 'youtube' ? 'bg-red-500/10 text-red-400 border border-red-500/20 shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}><Youtube className="w-4 h-4" /> YouTube</button>
+                     </div>
+                 </div>
+                 <div className="relative flex items-center gap-3 p-2 bg-black/40 rounded-2xl border border-white/5 focus-within:border-green-500/50 focus-within:ring-1 focus-within:ring-green-500/20 transition-all">
+                     {inputType === 'text' && (<><input type="file" ref={fileInputRef} onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" accept="application/pdf, image/*"/><button onClick={() => fileInputRef.current?.click()} className={`h-14 w-14 rounded-xl flex items-center justify-center transition-all border shrink-0 ${file ? 'bg-green-500/10 border-green-500/50 text-green-400' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}>{file ? <CheckCircle2 className="w-6 h-6"/> : <Upload className="w-6 h-6"/>}</button></>)}
+                     <input id="topic-input" type="text" value={topic} onChange={(e) => setTopic(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleGenerate(e)} placeholder={inputType === 'youtube' ? "Paste YouTube Video Link..." : "Type a topic or paste content..."} className="flex-1 bg-transparent text-white px-2 h-14 outline-none font-medium placeholder-zinc-600 text-lg min-w-0" />
+                     <button onClick={handleGenerate} disabled={!topic && !file} className="h-14 px-8 bg-white text-black font-bold rounded-xl flex items-center gap-2 hover:bg-green-400 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shrink-0"><ArrowRight className="w-5 h-5" /></button>
+                 </div>
+                 {file && inputType === 'text' && (<motion.div initial={{opacity:0, height: 0}} animate={{opacity:1, height: 'auto'}} className="mt-3 px-2"><div className="flex items-center justify-between bg-green-500/10 px-4 py-2 rounded-lg border border-green-500/20"><p className="text-xs text-green-300 font-mono flex items-center gap-2 font-bold truncate">{file.type.startsWith('image/') ? <ImageIcon className="w-4 h-4"/> : <FileText className="w-4 h-4"/>}{file.name}</p><button onClick={removeFile} className="p-1.5 hover:bg-red-500/10 hover:text-red-400 rounded-md transition-colors text-zinc-500"><X className="w-4 h-4"/></button></div></motion.div>)}
+              </div>
+              {error && <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="px-6 py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium flex items-center gap-3 shadow-lg"><AlertTriangle className="w-5 h-5"/>{error}</motion.div>}
             </motion.div>
           )}
 
-          {/* 2. SKELETON LOADING */}
+          {/* 💀 2. SKELETON LOADING (Instead of Spinner) */}
           {loading && <SkeletonLoader />}
 
           {isExamMode && !loading && (
@@ -569,24 +582,24 @@ export default function Home() {
                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                       <div className="md:col-span-12 bg-zinc-900 border border-zinc-800 rounded-2xl p-6"><h2 className="text-3xl font-black text-white mb-2">{result.title}</h2><div className="flex gap-4 text-xs font-mono text-zinc-500"><span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {result.stats.timeSaved} Saved</span><span className="flex items-center gap-1 text-green-500"><CheckCircle2 className="w-3 h-3"/> {result.stats.accuracy} Accuracy</span></div></div>
                       <div className="md:col-span-8 bg-zinc-900 border border-zinc-800 rounded-2xl p-8 relative overflow-hidden" ref={summaryScrollRef} style={{maxHeight: '600px', overflowY: 'auto'}}>
-                          
                           {/* 📏 6. Reading Progress Bar */}
                           <ReadingProgressBar targetRef={summaryScrollRef} />
-
                           <button onClick={(e) => handleTTS(result.summary, e)} className={`absolute top-6 right-6 p-2 rounded-full transition-all z-10 ${speakingItem === result.summary ? 'bg-red-500/20 text-red-400' : 'bg-zinc-800 text-zinc-400 hover:text-green-400'}`}>{speakingItem === result.summary ? <Square className="w-4 h-4 fill-current"/> : <Volume2 className="w-4 h-4"/>}</button><div className="flex items-center gap-2 text-zinc-500 font-mono text-xs uppercase tracking-widest mb-6"><BookOpen className="w-4 h-4 text-green-500"/> Executive Summary</div><Typewriter text={result.summary} className="text-zinc-300 leading-8 text-sm font-light" speed={5} shouldAnimate={!hasAnimated} onComplete={() => setHasAnimated(true)} />
                       </div>
                       <div className="md:col-span-4 bg-zinc-900 border border-zinc-800 rounded-2xl p-6"><div className="flex items-center gap-2 mb-4 text-zinc-500 font-mono text-xs uppercase tracking-widest"><BarChart3 className="w-4 h-4 text-green-500"/> Key Takeaways</div><ul className="space-y-3">{result.keyPoints.map((point, i) => (<li key={i} className="flex gap-3 text-sm text-zinc-300 items-start"><span className="mt-1.5 w-1.5 h-1.5 bg-green-500 rounded-full shrink-0"/><span dir="auto"><MarkdownRenderer content={point} /></span></li>))}</ul></div>
                    </div>
                 )}
                 
-                {/* 5. GRAPH CONTROLS */}
+                {/* 🎛️ 5. GRAPH CONTROLS */}
                 {activeTab === 'mindmap' && (
                    <div className="h-[600px] bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden relative shadow-2xl">
                        <div className="absolute top-4 left-4 z-10 px-3 py-1.5 bg-zinc-950/80 backdrop-blur border border-zinc-700 rounded-lg text-[10px] font-mono text-green-400 flex items-center gap-2"><Network className="w-3 h-3"/> CLICK NODE TO EXPAND</div>
                        
+                       {/* Wrapped in Provider for enhanced controls */}
                        <ReactFlowProvider>
                          <ReactFlow nodes={nodes} edges={edges} onNodeClick={onNodeClick} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} fitView proOptions={{ hideAttribution: true }}>
                              <Background color="#3f3f46" gap={24} size={1} className="opacity-10" />
+                             {/* Styled Controls */}
                              <Controls className="bg-zinc-800 border-zinc-700 text-zinc-400 rounded-lg p-1 [&>button]:border-b-zinc-700 hover:[&>button]:bg-zinc-700" showInteractive={true} />
                              <Panel position="bottom-right" className="bg-zinc-900/80 backdrop-blur px-3 py-1 rounded-full border border-zinc-800 text-[10px] text-zinc-500">
                                 Drag to move • Scroll to zoom
